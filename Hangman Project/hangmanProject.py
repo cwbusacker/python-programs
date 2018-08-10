@@ -15,7 +15,6 @@
 from random import randint
 from time import sleep
 from os import system, name
-import getpass
 
 #Define the player class
 class player(object):
@@ -173,7 +172,6 @@ def setting_updater():
          #Computer challenge the user
          print("\n\nMy turn to challenge you.")
          sleep(pause)
-         print (words)
          play_hangman()
 
          #Display who is winning and repeat
