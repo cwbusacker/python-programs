@@ -1,59 +1,57 @@
 ####################################################################################
 # Title: Python Hangman
 # Author: Chase Busacker
-# Time Estimate: 3 hours
+# Time Estimate: 10 hours
 #
-# This is my personal hangman project. It allows 9 guesses for a user to guess the
-# letters in a word. If the user fails, it tells them that they lost and tells them
-# the result. The program has the option to read words from a .txt file or use the 
-# default words list. After teaching myself python (using online tutorials), this 
-# was my very first personal python project.
-# 
+# This is my personal hangman project. It can be played in a variety of ways:
+# one "practice" round, a number(specified) of rounds verses a computer,
+# or a number(specified) of rounds human against human.
+#
+# After all the settings have been specified, the program will allow a number(specified)
+# of guesses to allow the user or computer to guess. Whoever wins will gain a point
+# and the other person will start their turn.
 ###################################################################################
-#Need random in order to select a random word.
+#Import sleep to slow down the program and randint for choosing random words.
 from random import randint
-
-#import sleep to slow down the program (makes the program more usable)
 from time import sleep
+from os import system, name
+import getpass
 
-import operator
-#Default words
-words = ["running", "python", "infinite loops", "memory leak", "internship"]
+#Define the player class
+class player(object):
+   def __init__(self, name, points):
+      self.name = name
+      self.points = points
 
-#pause time in seconds.
-pause = 0.75
+#UNIVERSAL OBJECTS
+words = ["cat", "dog", "chicken", "rooster", "cow", "hen", "pig", "hamster", "guinea pig"] #Default words if the user doesn't read in a file.
+pause = 0.75 #pause time in seconds will be multiplied in som
+play_type = "" #the name for the current playing mode (Single, 2, or Computer)
+guess_setting = 10 #the number of guesses the computer let's a person/itself guess. Will be changed in settings.
 
-#the name for the current playing mode (Single, 2, or Computer)
-play_type = ""
-
-#the number of guesses the computer let's a person/itself guess.
-guess_setting = 9
-
-player_1 = "Player 1"
-player_2 = "Player 2"
-
-rounds = 0
-player1points = 0
-player2points = 0
+#The two players. Names will be changed when game begins.
+player_1 = player("Player 1", 0)
+player_2 = player("Player 2", 0)
 
 ##########################################################################
-# readFile takes a filename, attempts to open it and requests a different
-# filename if the file is not found.
+# readDict takes a filename which is usually dictionary.txt and reads
+# it into words line by line.
 ##########################################################################
 def readDict(filename):
-  
    #words is what we will be returning. So initialize it to be empty.
    words = []
    try:
-      #Open the file!
+      #Open the file
       with open(filename, 'r') as files:
-         #loop through each line in the file
+         #loop through each line in the file and append it to the words list.
          for line in files:
                words.append(line.lower()[0:len(line)-1])
    except:
       print ("ERROR: Dictionary not found! Please add a dictionary to the local directory.")
 
    return words
+
+
 ##########################################################################
 # readFile takes a filename, attempts to open it and requests a different
 # filename if the file is not found.
@@ -80,6 +78,8 @@ def readFile(filename):
       words = readFile(input("Enter filename: "))
 
    return words
+
+
 #######################################################################   
 # Setting updater will update the settings of the game
 ####################################################################
@@ -91,110 +91,119 @@ def setting_updater():
    global guess_setting
    global player_1
    global player_2
-   global player1points
-   global player2points
 
-   #while loop (keep trying until we break).
-   while True:
-      try:
-         #if the try worked we will have an integer and break out
-         guess_setting = int(input("\n\nIncorrect Guess Limit: ")) 
-         break
-      except:
-         print("ERROR: Invalid input. Please enter a number.")
-         continue
-   sleep(pause)
-
-   #next setting to change: Playing mode.
+   #Change the Game mode.
    while True:
       print("\nWhat version of Hangman would you like to play?")
       command = input("\n1 for 1 Player(1 solo practice round)\n2 for 2 Player(Human vs. Human)\nC for the Computer(Human vs. Computer): ").upper()
       sleep(pause)
       print
 
-      #Single Player
-      if(command == '1'):
-         play_type = "single player"
-         player_2 = "You"
-         print ("Would you like to read in a file of words?")
-         print ("\nEnter a fileName for Yes, N for No.")
-         command = input()
-
-         #if the user requested to read a file in, then
-         #we will call the readfile function which
-         #will the take the filename and read it into our global words list.
-         if command.upper() != "N":
-            words = readFile(command)
-         play_hangman()
-         break
-
-      # 2 Player. Sets the play_type and calls play_hangman_multi
-      elif(command == '2'):
-         play_type = "2-player"
-         play_hangman_multi()
-         break
-
-      # Computer! Sets the play_type and plays the computer.
-      elif(command == 'C'):
-         
-         player1points = 0
-         player2points = 0
+      #Only want to get the guess number if we have a valid command.
+      if command == 'C' or command == '1' or command == '2':
+         #Loop until we have a valid guess number.
          while True:
             try:
-               rounds = int(input("\nHow many rounds would you like to play? "))
+               #if the try worked we will have an integer and break out
+               guess_setting = int(input("\nIncorrect Guess Limit: "))
                break
             except:
-               print("ERROR: Rounds must be a number! Try again.")
-         player_1 = "computer"
-         player_2 = "You"
-
-         print("\nLoading...\n")
-         words = readFile("dictionary.txt")
-
-         for i in range(0, rounds):
-            print ("Round: %d" % (i + 1))
-            
-            play_type = "2-player"
-            play_computer()
-
-            sleep(pause)  
-            print("\n\nMy turn to challenge you.")
-            sleep(pause)
-            play_hangman()
-            if i < rounds - 1:
-               print("Your turn to challenge me again.")
-               if(player1points > player2points):
-                  print ("I am winning with " + str(player1points) + " points.")
-                  print ("You are behind with " + str(player2points) + " points.")
-               elif(player2points > player1points):
-                  print ("You are winning with " + str(player2points) + " points.")
-                  print ("I am behind with " + str(player1points) + " points.")
-               else:
-                  print ("It's currently a tie. We both have " + str(player1points) + " points.")
-            else:
-               if(player1points > player2points):
-                  print ("I won with " + str(player1points) + " points.")
-                  print ("You lost with " + str(player2points) + " points.")
-               elif(player2points > player1points):
-                  print ("I won with " + str(player2points) + " points.")
-                  print ("You lost with " + str(player1points) + " points.")
-               else:
-                  print ("It ended in a tie. We both have " + str(player1points) + " points.")
-
-            sleep(pause)
-           
-               
-         play_type = "against the computer"
-    
-
-         
-      
-      #Invalid command. Alert the user and request again.
+               print("ERROR: Invalid input. Please enter a number.")
+               continue
+         break
+      #Invalid command given (Not 1, 2, 3). Alert the user and request again.
       else:
          print ("ERROR: Invalid Command\nPlease try again.")
          continue
 
-   if(input("Play again(Y for Yes, Any key for No)? ").upper() == "Y"):
+   
+      sleep(pause)
+
+      #Single Player
+   if(command == '1'):
+      play_type = "single player"
+      player_2.name = "You"
+      print ("Would you like to read in a file of words?")
+      print ("\nEnter a fileName for Yes, N for No.")
+      command = input()
+
+      #if the user requested to read a file in, then
+      #we will call the readfile function which
+      #will the take the filename and read it into our global words list.
+      if command.upper() != "N":
+         words = readFile(command)
+      play_hangman()
+  
+   # 2 Player. Sets the play_type and calls play_hangman_multi
+   elif(command == '2'):
+      play_type = "2-player"
+      play_hangman_multi()
+  
+   # Computer! Sets the play_type and plays the computer.
+   elif(command == 'C'):
+
+      #setup the settings of the game
+      play_type = "against the computer"
+      player_1.name = "computer"
+      player_1.points = 0
+      player_2.name = "You"
+      player_2.points = 0
+
+      #this is here because we only want to call it once and play_computer gets called
+      #multiple times since there are multiple rounds.
+      while True:
+         try:
+            rounds = int(input("\nHow many rounds would you like to play? "))
+            break
+         except:
+            print("ERROR: Rounds must be a number! Try again.")
+         
+         #Load the dictionary before we begin.
+      print("\nLoading...\n")
+      words = readDict("dictionary.txt")
+
+         #Loop the amount of rounds
+      for i in range(0, rounds):
+         print ("Round: %d" % (i + 1))
+
+         #play the computer
+         play_computer()
+         sleep(pause)  
+
+         #Computer challenge the user
+         print("\n\nMy turn to challenge you.")
+         sleep(pause)
+         print (words)
+         play_hangman()
+
+         #Display who is winning and repeat
+         if i < rounds - 1:
+            print("Your turn to challenge me again.")
+            if(player_1.points > player_2.points):
+               print ("I am winning with " + str(player_1.points) + " points.")
+               print ("You are behind with " + str(player_2.points) + " points.")
+            elif(player_2.points > player_1.points):
+               print ("You are winning with " + str(player_2.points) + " points.")
+               print ("I am behind with " + str(player_1.points) + " points.")
+            else:
+               print ("It's currently a tie. We both have " + str(player_1.points) + " points.")
+         
+         #display the final results.
+      print("\n\nGame Over\nHere are the results:\n")
+      if(player_1.points > player_2.points):
+         print ("I won with " + str(player_1.points) + " points.")
+         print ("You lost with " + str(player_2.points) + " points.")
+      elif(player_2.points > player_1.points):
+         print ("I won with " + str(player_2.points) + " points.")
+         print ("You lost with " + str(player_1.points) + " points.")
+      else:
+         print ("It ended in a tie. We both have " + str(player_1.points) + " points.")
+
+      sleep(pause)
+      
+      
+
+   if(input("\n\nPlay again(Y for Yes, Any key for No)? ").upper() == "Y"):
       print("\n")
       play_again()
 
@@ -205,14 +214,16 @@ def setting_updater():
 # up until the guess_setting.
 ########################################################################
 def play_computer():
-   global player1points
-   global player2points
-
+   global player_1
+   global player_2
    #Request the word or phrase from the user
    word = input("\nEnter a word or phrase to challenge the computer: ").upper()
-   #Read in the dictionary.
+
+   #wordlist = words because words is currently our dictionary.
    wordlist = readDict("dictionary.txt")
    dictionary = {}
+
+   #Letters in the order of most to least common.
    defaultletters = ["e", "t", "a", "o", "i", "n", "s", "r", "h", "l", "d", "c", "u",
                      "m", "f", "p", "g", "w", "y", "b", "v", "k", "x", "j", "q", "z"]
 
@@ -248,28 +259,33 @@ def play_computer():
    print("\n")
    #Let the games begin. Run while there are still guesses left!
    while guessnum > 0:
+
       #make a list of possible words (empty at the beginning)
       possiblewords = []
 
-      #some checking to see which word we are currently working on...
-      #start with the first word and continue until the end of the phrase.
-
       ##########STEP 1 : DETERMINE WORD TO WORK ON#########
-      if len(wordlist) > numwordsguessed and wordlist[numwordsguessed] == word.split()[numwordsguessed] :
+      #The length of numwordsguessed is smaller than the index AND the word at the index islower AKA has been guessed
+      if len(wordlist) > numwordsguessed and word.split()[numwordsguessed].islower() :
          numwordsguessed += 1
          continue
       elif(len(wordlist) == numwordsguessed):
          pass
       else:
+         #if changing words isn't necessary then we will continue narrowing down until
          ##########STEP 2 : CREATE DICTIONARY AND NARROW DOWN#########
+         #try just in case the dictionary is empty.
          try:
             for possibles in dictionary[len(word.split()[numwordsguessed])]:
                count = 0
-               #seems like the system error is here somewhere....
-               if word.split()[numwordsguessed].isupper() and len(guesses) == 0:
+
+               #if we haven't guessed a single letter yet then the possible words are any word that's the same length.
+               if len(guesses) == 0:
                   possiblewords = dictionary[len(wordlist[0])]
                   break
-               else: 
+
+               else: #no guesses have occured so include ONLY words that are the same length
+                     #lack letters that have been guessed incorrectly, and contain letters
+                     #in the same spot if guessed correctly.
                   for c in word.split()[numwordsguessed]:
                      if ((c.islower() and c != possibles[count])
                      or (possibles[count] in guesses and possibles[count] not in word.split()[numwordsguessed])):
@@ -282,7 +298,6 @@ def play_computer():
   
        ##########STEP 3 : COUNT UP LETTERS#########
       lettercount = {}
-      
       #count up the letters in the words
       for words in possiblewords:
          for c in words:
@@ -296,27 +311,25 @@ def play_computer():
 
       
        ##########STEP 4 : GENERATE GUESS#########
-      wordslefttoguess = len(word.split()) - numwordsguessed #APPROXIMATELY
+      #if there is more than one letter to guess or are only a 
+      #couple of possible words left then we will find the next best guess.
+      #For loops used to find the 
       if (letterstoguess > 1 
-          or len(possiblewords) < (guesses - wordslefttoguess)/wordslefttoguess):
+          or len(possiblewords) < 3) and len(possiblewords) > 0:
          for guess in lettercount:
             if guess not in guesses:
                break
-       # Only invalid guesses in lettercount
-         else:
-            for guess in defaultletters:
-               if guess not in guesses:
-                  break
       # Only 1 letter left, better to use default letters
       else:
          for guess in defaultletters:
                if guess not in guesses:
                   break
-      letterstoguess = 0
-      displayword = ""
+      
 
        ##########STEP 5 : DISPLAY WORD, GUESS AND RESULTS#########
       # Here is where we prepare the display (with '_ ' for each letter not guessed)
+      letterstoguess = 0 #A count of unguessed letters
+      displayword = "" #eventually the final display word
       for i in range(0, len(word)):
 
         #For computer guessing, we used uppercase to lower case instead of the '@' symbol.
@@ -332,6 +345,8 @@ def play_computer():
          #spaces = 2 spaces to make it more readable 
          elif(word[i] == " "):
             displayword += "  "
+
+         #It must be a number or symbol. We display these for free.
          else:
             displayword += word[i]
       ########PRINT THE DISPLAY
@@ -342,16 +357,18 @@ def play_computer():
       #so break the loop
       if letterstoguess == 0:
          print ("\n\nI beat you! You lost!")
-         player1points += 1
+         player_1.points += 1
          break
       
       rand = randint(0,4)
 
-      ########PRINT THE GUESS
+      ########PRINT THE GUESS Let the computer "THINK"
+      #Allows some time between guesses so the user can 
+      #actually see what is going on.
       print("\n\nI'm thinking...")
       sleep(pause * 4)
 
-      if len(possiblewords) < 10 and len(possiblewords) > 0:
+      if len(possiblewords) < 4 and len(possiblewords) > 0:
          print("OH! I think I know what that word is now!!")
          sleep(pause * 1.5)
          print("Let's go with %s!" % guess)
@@ -368,6 +385,7 @@ def play_computer():
          print("Are there any %s's?" % guess)
       possiblewords = []
       sleep(pause * 2)
+      guesses.append(guess)
       ########PRINT RESULTS##########
 
       #CORRECT GUESS
@@ -375,76 +393,98 @@ def play_computer():
          print ("%s was in the word/phrase!" % guess, flush = True)
          sleep(pause * 2)
          print("\n")
-         guesses.append(guess)
          word = word.replace(guess.upper(), guess)
 
       #INCORRECT GUESS
       else: 
          print ("I guessed wrong!", flush = True)
          guessnum -= 1
-         guesses.append(guess)
          sleep(pause)
          if(guessnum != 0):
             print ("But I have incorrect %d guesses left!" % guessnum, flush = True) 
             sleep(pause)
             print("\n")
+
+   #The while loop will exit normally if the computer runs our of guesses.
    else:
       print ("\n\nI ran out of guesses! You won this round!")
-      player2points += 1
-   if(player1points > player2points):
-      print("I am currently winning with %d points. You have %d points." %(player1points, player2points))
-   elif(player2points > player1points):
-      print("You are currently winning with %d points. I have %d points."% (player2points, player1points))
+      player_2.points += 1
+
+   #Display the results of the round.
+   if(player_1.points > player_2.points):
+      print("I am currently winning with %d points. You have %d points." %(player_1.points, player_2.points))
+   elif(player_2.points > player_1.points):
+      print("You are currently winning with %d points. I have %d points."% (player_2.points, player_1.points))
    else:
-      print("We are tied with %d points" % player1points)
+      print("We are tied with %d points" % player_1.points)
 
 ###########################################################################################
 # play_hangman_multi takes a word or phrase from Player 1 and allows Player 2 to start
 # guessing the letters in the word or phrase
 ##########################################################################################
 def play_hangman_multi():
+
+   global player_1
+   global player_2
+   global words
+   
+   #Keep trying for error checking.
    while True:
       try:
          rounds = int(input("\nHow many rounds would you like to play? "))
          break
       except:
          continue
-   global player_1
-   global player_2
-   global words
-   global player1points
-   global player2points
+   
+   #initialize the settings for the game
    sleep(pause)
    print("")
-   player_1 = input("What's the name of player 1? ")
-   player_2 = input("What's the name of player 2? ")
+   player_1.name = input("What's the name of player 1? ")
+   player_2.name = input("What's the name of player 2? ")
+   
+   #run rounds * 2 (1 turn for each player)
    for r in range(0, rounds * 2):
       if(r % 2 == 0):
          print ("Round: %d" % ((r + 2)/2))
+      
+      #empty out words and add what we request on top.
       words.clear()
-      words.append(input("\n%s, enter the word or phrase (make sure %s doesn't see): " % (player_1, player_2)))
-      print("\n"*2000)
-      play_hangman()
-      player_1, player_2 = player_2, player_1
-      player1points, player2points = player2points, player1points
-      if (r < rounds * 2 - 1):
-         if(player1points > player2points):
-            print (player_1 + " is winning with " + str(player1points) + " points.")
-            print (player_2 + " is behind with " + str(player2points) + " points.")
-         elif(player2points > player1points):
-            print (player_2 + " is winning with " + str(player2points) + " points.")
-            print (player_1 + " is behind with " + str(player1points) + " points.")
-         else:
-            print ("It's currently a tie. You both have " + str(player1points) + " points.")
+      
+      #Request the next word from the user.
+      words.append(input("\n%s, enter the word or phrase (make sure %s doesn't see): " % (player_1.name, player_2.name)))
+      
+      #Clear the screen so that the other player cannot see the word that was just entered.
+      if(name == 'nt'):
+         system('cls')
       else:
-         if(player1points > player2points):
-            print (player_1 + " won with " + str(player1points) + " points.")
-            print (player_2 + " lost with " + str(player2points) + " points.")
-         elif(player2points > player1points):
-            print (player_2 + " won with " + str(player2points) + " points.")
-            print (player_1 + " lost with " + str(player1points) + " points.")
+         system('clear')
+      
+      #Play the round
+      play_hangman()
+
+      #Switch the players, display results so far and play another round
+      player_1, player_2 = player_2, player_1
+      if (r < rounds * 2 - 1):
+         if(player_1.points > player_2.points):
+            print (player_1.name + " is winning with " + str(player_1.points) + " points.")
+            print (player_2.name + " is behind with " + str(player_2.points) + " points.")
+         elif(player_2.points > player_1.points):
+            print (player_2.name + " is winning with " + str(player_2.points) + " points.")
+            print (player_1.name + " is behind with " + str(player_1.points) + " points.")
          else:
-            print ("It ended in a tie. You both have " + str(player1points) + " points.")
+            print ("It's currently a tie. You both have " + str(player_1.points) + " points.")
+      
+      #Display final results
+      else:
+         print("\n\nGame Over\nHere are the results:")
+         if(player_1.points > player_2.points):
+            print (player_1.name + " won with " + str(player_1.points) + " points.")
+            print (player_2.name + " lost with " + str(player_2.points) + " points.")
+         elif(player_2.points > player_1.points):
+            print (player_2.name + " won with " + str(player_2.points) + " points.")
+            print (player_1.name + " lost with " + str(player_1.points) + " points.")
+         else:
+            print ("It ended in a tie. You both have " + str(player_1.points) + " points.")
 
 
 #######################################################################################
@@ -452,15 +492,18 @@ def play_hangman_multi():
 # playing again. Then it will run the program again
 #######################################################################################
 def play_again():
+   
+   #Display the current settings
    print("CURRENT SETTINGS:")
    if(play_type == "single player"):
       print("There are %d possible words which are chosen at random." % len(words))
    print("You are currently playing %s." % play_type)
    print("Incorrect Guess Limit: %d" % guess_setting)
    if play_type == "2-player":
-      print("Player 1 (challenger): %s" % player_1)
-      print("Player 2 (guesser): %s" % player_2)
+      print("Player 1: %s" % player_1.name)
+      print("Player 2: %s" % player_2.name)
 
+   #Change the settings if necessary
    while True:
       command = input("\nWould you like to change these settings(y or n)? ").upper()
       if command == 'Y':
@@ -481,8 +524,8 @@ def play_again():
 #################################################################
 def play_hangman():
 
-   global player1points
-   global player2points
+   global player_1
+   global player_2
    #Choose a random word in our list
    word = words[randint(0, len(words) - 1)].lower()
    
@@ -495,8 +538,8 @@ def play_hangman():
    #sleep will slow down the program to make it more user friendly.
    sleep(pause)
 
-   if play_type == "2-player":
-      print ("%s, you have %d guesses to guess each letter in the word or phrase." % (player_2, guessnum))
+   if play_type == "2-player" or play_type == "against the computer":
+      print ("%s, you have %d guesses to guess each letter in the word or phrase." % (player_2.name, guessnum))
    else:
       print ("You have %d guesses to guess each letter in the word or phrase." % guessnum)
    
@@ -544,9 +587,9 @@ def play_hangman():
       if letterstoguess == 0:
          if play_type == "single player":
             print ("\n\nCongratulations! You won!")
-         elif play_type == "2-player":
-            print ("\n\n%s won! Better luck next time %s." % (player_2, player_1))
-            player2points += 1
+         else:
+            print ("\n\n%s won! Better luck next time %s." % (player_2.name, player_1.name))
+            player_2.points += 1
             break
 
       #guess a letter and add to guesses.
@@ -581,8 +624,8 @@ def play_hangman():
       sleep(pause)
    #if the while loop exits normally, then display the lost message.
    else:
-      print ("\n\n%s lost! Mr. Hangman is dead. The word/phrase was %s" % (player_2, word)) 
-      player1points += 1
+      print ("\n\n%s lost! Mr. Hangman is dead. The word/phrase was %s" % (player_2.name, word)) 
+      player_1.points += 1
   
 
 ######################################################################
