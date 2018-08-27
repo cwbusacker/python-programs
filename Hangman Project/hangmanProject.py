@@ -15,6 +15,7 @@
 from random import randint
 from time import sleep
 from os import system, name
+import getpass
 
 #Define the player class
 class player(object):
@@ -44,7 +45,7 @@ def readDict(filename):
       with open(filename, 'r') as files:
          #loop through each line in the file and append it to the words list.
          for line in files:
-               words.append(line.lower()[0:len(line)-1])
+               words.append(str(line).lower())
    except:
       print ("ERROR: Dictionary not found! Please add a dictionary to the local directory.")
 
